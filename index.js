@@ -8,7 +8,7 @@ const app = express();
 const port = 3000;
 const urlForIBN = "https://openlibrary.org/search.json?title=";
 const urlForCover = "https://covers.openlibrary.org/b/isbn/";
-const sizeAndType = "-M.jpg";
+const sizeAndType = "-M.jpg?default=false";
 const db = new pg.Client(
     {
         user: "postgres",
@@ -35,7 +35,6 @@ app.get("/", async (req, res) =>
     try
     {
         books = (await db.query("SELECT * FROM BOOK")).rows;
-        console.log(books);
     }
     catch(e)
     {
@@ -52,32 +51,46 @@ app.post("/addBook", async (req, res) =>
     const autor = req.body.autor;
     const descriere = req.body.descriere;
     const response = await axios.get(urlForIBN + titlu);
-    const ISBN = response.data.docs.filter(book => book.author_name)
+    const listOfISBN = response.data.docs.filter(book => book.author_name)
                                    .filter(book => book.author_name.includes(autor))[0]
-                                   .isbn[0];
+                                   .isbn; // iau toate ISBN-urile existente pentru carte
 
-    console.log(response.data.docs.filter(book => book.author_name).filter(book => book.author_name.includes(autor))[0].isbn);
+    // console.log(response.data.docs.filter(book => book.author_name).filter(book => book.author_name.includes(autor))[0].isbn);
 
 
-    if (ISBN)
+    if (listOfISBN.length > 0)
     {
-        try
+        let imgResponse = "";
+
+        for(const isbn of listOfISBN) // iterez prin toata lista pentru ca gasi un ISBN cu care merge sa iau coperta
         {
-            const imgResponse = await axios.get(urlForCover + ISBN + sizeAndType);
+            try
+            {
+                imgResponse = await axios.get(urlForCover + isbn + sizeAndType);
 
-            const imgUrl = imgResponse.request.res.responseUrl;
+                const imgUrl = imgResponse.request.res.responseUrl;
 
-            await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, imgUrl]);
+                await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, imgUrl]);
+
+                break;
+            }
+            catch (e)
+            {
+                console.log("ISBN not ok for getting cover");
+            }
         }
-        catch (e)
+
+        if (!imgResponse)
         {
-            console.log("Unable to add book");
-            console.log(e.stack);
+            console.log("Unable to retrieve cover");
+
+            await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
         }
     }
     else
     {
         console.log("Unable to retrieve ISBN");
+        await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
     }
 
     res.redirect("/");
