@@ -1,0 +1,29 @@
+<%- include("partials/header.ejs") %>
+
+
+    <form action="/addBook" method="post" class="container d-flex flex-column justify-content-end align-items-center my-5 py-4 rounded border">
+
+        <h2 class="addBook">Adauga o carte citita</h2>
+
+        <div class="form-floating mb-3 w-100">
+            <input type="text" class="form-control" id="floatingInput" placeholder="name@example.com">
+            <label for="floatingInput">Titlu</label>
+        </div>
+
+        <div class="form-floating mb-3 w-100">
+            <input type="text" class="form-control" id="floatingPassword" placeholder="Password">
+            <label for="floatingPassword">Autor</label>
+        </div>
+
+        <div class="form-floating w-100">
+            <textarea class="form-control" placeholder="Adauga o descriere" id="floatingTextarea"></textarea>
+            <label for="floatingTextarea">Descriere</label>
+          </div>
+
+        <input type="submit" class="btn btn-add mt-3" value="Adauga carte">
+    
+    </form>
+
+
+
+<%- include("partials/footer.ejs") %>

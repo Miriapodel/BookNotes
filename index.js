@@ -15,7 +15,17 @@ const db = new pg.Client(
     }
 );
 
+app.use(bodyParser.urlencoded( { extended : true } ));
+app.use(express.static("public"));
+
 db.connect();
+
+
+app.get("/", (req, res) =>
+{
+    res.render("index.ejs");
+});
+
 
 app.listen(port, () =>
 {
