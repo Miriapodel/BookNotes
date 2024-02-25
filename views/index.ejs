@@ -1,7 +1,50 @@
 <%- include("partials/header.ejs") %>
 
 
-    <form action="/addBook" method="post" class="container d-flex flex-column justify-content-end align-items-center my-5 py-4 rounded border">
+    <% if ( locals.books.length > 0 ) { %>
+
+        <div class="container my-5">
+
+            <% for ( let i = 0; i < locals.books.length; i++ ) { %>
+
+                <div class="row my-4 bookDetails border shadow-lg rounded">
+
+                    <div class="d-flex py-2 my-2 item">
+
+                        <% if (books[i].coperta != null) { %>
+
+                            <% console.log(books[i]) %>
+
+                        <img src=<%= books[i].coperta %> alt="bookCover" class="bookCover">
+
+                        <% } else { %>
+
+                            <% console.log("merge") %>
+
+                            <img src="images/blackCover.jpeg" alt="bookCover" class="bookCover">
+
+                        <% } %>
+
+                        <div class="info col-sm-12 col-md-4 d-flex flex-column  px-2 flex-grow-1">
+
+                            <h2><%= books[i].title %></h2>
+                            <h3><%= books[i].autor %></h3>
+                            <p><%= books[i].descriere %></p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            <% } %>
+
+        </div>
+
+    <% } %>
+
+
+    <form action="/addBook" method="post" class="container d-flex shadow-lg flex-column justify-content-end align-items-center my-5 py-4 rounded border">
 
         <h2 class="addBook">Adauga o carte citita</h2>
 
