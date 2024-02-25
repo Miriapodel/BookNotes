@@ -58,20 +58,35 @@ app.post("/addBook", async (req, res) =>
     }
     else
     {
-        const listOfISBN = response.data.docs.filter(book => book.author_name)
-                                   .filter(book => 
+       // console.log(response.data.docs[1]);
+        let listOfISBN = response.data.docs.filter(book => book.author_name); 
+
+        if ( listOfISBN.length == 0 )
+            response.data.docs.forEach(book => 
+            {
+                listOfISBN.push(...book.isbn);
+            });
+           
+        else
+        {
+
+            let auxList = listOfISBN.filter(book => 
                                     {
                                         const authorNames = book.author_name.map(name => name.toLowerCase());
 
-                                        return authorNames.includes(autor.toLowerCase())
-                                    })[0] // iau toate numele de autori si le convertesc la litera mica
-                                          //, la fel si cu numele de autor trimis ca input, ca sa verific corect in cazul in care user-ul 
-                                          // nu trimite numele cu aceeasi capitalization
-                                   .isbn; // iau toate ISBN-urile existente pentru carte
+                                        return authorNames.includes(autor.toLowerCase())    // iau toate numele de autori si le convertesc la litera mica
+                                                                                    //, la fel si cu numele de autor trimis ca input, ca sa verific corect 
+                                                                                    // in cazul in care user-ul  nu trimite numele cu aceeasi capitalization
+                                    })
+                           
+            listOfISBN = [];
 
-                                   
-    // console.log(response.data.docs.filter(book => book.author_name).filter(book => book.author_name.includes(autor))[0].isbn);
-
+            auxList.forEach(book => 
+                                {
+                                    listOfISBN.push(...book.isbn); // iau toate ISBN-urile existente pentru carte
+                    
+                                }); 
+        }           
 
         if (listOfISBN.length > 0)
         {
