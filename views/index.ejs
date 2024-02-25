@@ -7,19 +7,15 @@
 
             <% for ( let i = 0; i < locals.books.length; i++ ) { %>
 
-                <div class="row my-4 bookDetails border shadow-lg rounded">
+                <div class="row my-5 bookDetails border shadow-lg rounded d-flex flex-column">
 
                     <div class="d-flex py-2 my-2 item">
 
                         <% if (books[i].coperta != null) { %>
 
-                            <% console.log(books[i]) %>
-
                         <img src=<%= books[i].coperta %> alt="bookCover" class="bookCover">
 
                         <% } else { %>
-
-                            <% console.log("merge") %>
 
                             <img src="images/blackCover.jpeg" alt="bookCover" class="bookCover">
 
@@ -32,6 +28,20 @@
                             <p><%= books[i].descriere %></p>
 
                         </div>
+
+                    </div>
+
+                    <div class="d-flex flex-column align-items-start">
+
+                        <form action="/edit" class="my-1 actionForm" method="get">
+                            <input type="hidden" name="id" value=<%= books[i].id %>>
+                            <input type="submit" class="btn btn-secondary" value="Edit">
+                        </form>
+
+                        <form action="/delete" class="my-1 actionForm" method="post">
+                            <input type="hidden" name="id" value=<%= books[i].id %>>
+                            <input type="submit" class="btn btn-danger" value="Delete">
+                        </form>
 
                     </div>
 
@@ -63,7 +73,7 @@
             <label for="floatingTextarea">Descriere</label>
           </div>
 
-        <input type="submit" class="btn btn-add mt-3" value="Adauga carte">
+        <input type="submit" class="rounded py-2 btn-add mt-3" value="Adauga carte">
     
     </form>
 

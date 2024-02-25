@@ -6,7 +6,7 @@ body, html
 
 body
 {
-    background-color: #0D9276;
+    background-color: #0bbd97;
 }
 
 form
@@ -22,9 +22,24 @@ form
 .btn-add
 {
     background-color: #03C988;
+    border: 0;
+
 }
 
+.actionForm
+{
+    background-color: transparent;
+}
 
+.btn-add:hover
+{
+    background-color: #029d69;
+}
+
+.bookDetails
+{
+    background-color: #0D9276;
+}
 
 @media  screen and (max-width: 767px)
 {

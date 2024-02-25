@@ -45,91 +45,138 @@ app.get("/", async (req, res) =>
 });
 
 
-app.post("/addBook", async (req, res) =>
+app.get("/edit", async (req, res) =>
 {
-    const titlu = req.body.titlu;
-    const autor = req.body.autor;
-    const descriere = req.body.descriere;
-    const response = await axios.get(urlForIBN + titlu);
-   
-    if ( response.data.numFound  == 0)
-    {
-        console.log("Unable to find book");
-    }
-    else
-    {
-       // console.log(response.data.docs[1]);
-        let listOfISBN = response.data.docs.filter(book => book.author_name); 
+    const bookId = req.query.id;
+    const book = (await db.query("SELECT * FROM BOOK WHERE ID = $1", [bookId])).rows[0];
 
-        if ( listOfISBN.length == 0 )
-            response.data.docs.forEach(book => 
-            {
-                listOfISBN.push(...book.isbn);
-            });
-           
-        else
-        {
+    res.render("edit.ejs", {book:book});
+});
 
-            let auxList = listOfISBN.filter(book => 
-                                    {
-                                        const authorNames = book.author_name.map(name => name.toLowerCase());
 
-                                        return authorNames.includes(autor.toLowerCase())    // iau toate numele de autori si le convertesc la litera mica
-                                                                                    //, la fel si cu numele de autor trimis ca input, ca sa verific corect 
-                                                                                    // in cazul in care user-ul  nu trimite numele cu aceeasi capitalization
-                                    })
-                           
-            listOfISBN = [];
+app.post("/cancelEdit", (req, res) =>
+{
+    res.redirect("/");
+});
 
-            auxList.forEach(book => 
-                                {
-                                    listOfISBN.push(...book.isbn); // iau toate ISBN-urile existente pentru carte
-                    
-                                }); 
-        }           
 
-        if (listOfISBN.length > 0)
-        {
-            let imgResponse = "";
+app.post("/submitEdit", async (req, res) =>
+{
+    const descriereNoua = req.body.descriere;
+    const bookId = req.body.id;
 
-            for(const isbn of listOfISBN) // iterez prin toata lista pentru ca gasi un ISBN cu care merge sa iau coperta
-            {
-                try
-                {
-                    imgResponse = await axios.get(urlForCover + isbn + sizeAndType);
-
-                    const imgUrl = imgResponse.request.res.responseUrl;
-
-                    await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, imgUrl]);
-
-                    break;
-                }
-                catch (e)
-                {
-                    console.log("ISBN not ok for getting cover");
-                }
-            }
-
-            if (!imgResponse)
-            {
-                console.log("Unable to retrieve cover");
-
-                await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
-            }
-        }
-        else
-        {
-            console.log("Unable to retrieve ISBN");
-            await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
-        }
-
-    }
+    await db.query("UPDATE BOOK SET DESCRIERE = $1 WHERE ID = $2", [descriereNoua, bookId]);
 
     res.redirect("/");
 
 });
 
+
+app.post("/addBook", async (req, res) =>
+{
+    const titlu = req.body.titlu.trim();
+    const autor = req.body.autor.trim();
+    const descriere = req.body.descriere;
+
+    if (titlu && autor)
+    {
+
+
+        const response = await axios.get(urlForIBN + titlu);
+    
+        if ( response.data.numFound  == 0)
+        {
+            console.log("Unable to find book");
+        }
+        else
+        {
+            let listOfISBN = response.data.docs.filter(book => book.author_name); 
+
+            if ( listOfISBN.length == 0 )
+                response.data.docs.forEach(book => 
+                {
+                    listOfISBN.push(...book.isbn);
+                });
+            
+            else
+            {
+
+                let auxList = listOfISBN.filter(book => 
+                                        {
+                                            const authorNames = book.author_name.map(name => name.toLowerCase());
+
+                                            return authorNames.includes(autor.toLowerCase())    // iau toate numele de autori si le convertesc la litera mica
+                                                                                        //, la fel si cu numele de autor trimis ca input, ca sa verific corect 
+                                                                                        // in cazul in care user-ul  nu trimite numele cu aceeasi capitalization
+                                        })
+                            
+                listOfISBN = [];
+
+                auxList.forEach(book => 
+                                    {
+                                        listOfISBN.push(...book.isbn); // iau toate ISBN-urile existente pentru carte
+                        
+                                    }); 
+            }           
+
+            if (listOfISBN.length > 0)
+            {
+                let imgResponse = "";
+
+                for(const isbn of listOfISBN) // iterez prin toata lista pentru ca gasi un ISBN cu care merge sa iau coperta
+                {
+                    try
+                    {
+                        imgResponse = await axios.get(urlForCover + isbn + sizeAndType);
+
+                        const imgUrl = imgResponse.request.res.responseUrl;
+
+                        await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, imgUrl]);
+
+                        break;
+                    }
+                    catch (e)
+                    {
+                        console.log("ISBN not ok for getting cover");
+                    }
+                }
+
+                if (!imgResponse)
+                {
+                    console.log("Unable to retrieve cover");
+
+                    await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
+                }
+            }
+            else
+            {
+                console.log("Unable to retrieve ISBN");
+                await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
+            }
+
+        }
+
+    }
+    else
+    {
+        console.log("Title or author or both not given");
+    }
+    res.redirect("/");
+
+});
+
+
+app.post("/delete", async (req, res) =>
+{
+    await db.query("DELETE FROM BOOK WHERE ID = $1", [req.body.id]);
+
+    res.redirect("/");
+});
+
+
 app.listen(port, () =>
 {
     console.log(`Server is running on port ${port}`);
 })
+
+//TODO: De adaugat mesaje in pagina cand ceva nu e bine
