@@ -74,6 +74,8 @@ app.post("/submitEdit", async (req, res) =>
 
 app.post("/addBook", async (req, res) =>
 {
+    const data = new Date();
+    const dataISO = data.toISOString();
     const titlu = req.body.titlu.trim();
     const autor = req.body.autor.trim();
     const descriere = req.body.descriere;
@@ -131,7 +133,7 @@ app.post("/addBook", async (req, res) =>
 
                         const imgUrl = imgResponse.request.res.responseUrl;
 
-                        await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, imgUrl]);
+                        await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, COPERTA, DATA) VALUES($1, $2, $3, $4, $5)", [titlu, autor, descriere, imgUrl, dataISO]);
 
                         break;
                     }
@@ -145,13 +147,13 @@ app.post("/addBook", async (req, res) =>
                 {
                     console.log("Unable to retrieve cover");
 
-                    await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
+                    await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE, DATA) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, dataISO]);
                 }
             }
             else
             {
                 console.log("Unable to retrieve ISBN");
-                await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3)", [titlu, autor, descriere]);
+                await db.query("INSERT INTO BOOK(TITLE, AUTOR, DESCRIERE) VALUES($1, $2, $3, $4)", [titlu, autor, descriere, dataISO]);
             }
 
         }
